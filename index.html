@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Person In Danger & Operator View Demo for false swatting calls</title>
-    <style>
+    <title>Operator Shift Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<style>
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -117,74 +120,119 @@ button:hover {
         width: 100%;
     }
 }
-    </style>
-</head>
-<body>
 
+</style>
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('person')">Person in Danger</div>
-        <div class="tab" onclick="switchTab('operator')">Operator's View</div>
+        <div class="tab active" onclick="switchTab('personEntry')">Person Entry</div>
+        <div class="tab" onclick="switchTab('operatorView')">Operator's View</div>
     </div>
 
-    <div id="person" class="content active">
-        <h2>Person Information</h2>
-        <label>ID VERIFICATION:</label>
+    <div id="personEntry" class="content active">
+        <h2>Enter Person Details</h2>
+        <label for="photo">Upload ID Photo:</label>
         <input type="file" id="photo">
 
-        <label>First Name:</label>
+        <label for="firstName">First Name:</label>
         <input type="text" id="firstName">
 
-        <label>Last Name:</label>
+        <label for="lastName">Last Name:</label>
         <input type="text" id="lastName">
 
-        <label>Phone Number:</label>
+        <label for="phone">Phone Number:</label>
         <input type="text" id="phone">
 
-        <label>Address:</label>
+        <label for="address">Address:</label>
         <input type="text" id="address">
 
-        <label>Reason:</label>
+        <label for="reason">Reason:</label>
         <input type="text" id="reason">
 
-        <button onclick="submitForm()">Submit</button>
+        <button onclick="submitPerson()">Submit</button>
     </div>
 
-    <div id="operator" class="content">
+    <div id="operatorView" class="content">
         <h2>Operator's View</h2>
-        <label>Search Address:</label>
-        <input type="text" id="search" oninput="checkAddress()">
+        <label for="searchAddress">Search by Address:</label>
+        <input type="text" id="searchAddress" oninput="filterResults()">
 
-        <div id="alert" class="alert">Potential false SWAT ALERT!</div>
+        <div id="alertBox" class="alert">Potential False SWAT alert.</div>
+
+        <div id="dataDisplay"></div>
     </div>
 
     <script>
-        let storedAddresses = [];
+let personData = [];
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
-            document.getElementById(tab).classList.add('active');
+function switchTab(tabName) {
+    document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+    if (tabName === 'operatorView') {
+        document.getElementById('dataDisplay').innerHTML = ""; 
+    }
+}
+
+function submitPerson() {
+    let firstName = document.getElementById('firstName').value;
+    let lastName = document.getElementById('lastName').value;
+    let phone = document.getElementById('phone').value;
+    let address = document.getElementById('address').value;
+    let reason = document.getElementById('reason').value;
+
+    if (!firstName || !lastName || !phone || !address || !reason) {
+        alert("All fields must be filled!");
+        return;
+    }
+
+    let newPerson = { firstName, lastName, phone, address, reason };
+    personData.push(newPerson);
+
+    // Clear form fields
+    document.getElementById('firstName').value = "";
+    document.getElementById('lastName').value = "";
+    document.getElementById('phone').value = "";
+    document.getElementById('address').value = "";
+    document.getElementById('reason').value = "";
+
+    alert("Person submitted successfully!");
+}
+
+function filterResults() {
+    let searchText = document.getElementById('searchAddress').value.toLowerCase();
+    let alertBox = document.getElementById('alertBox');
+    let container = document.getElementById('dataDisplay');
+
+    alertBox.style.display = "none"; 
+    container.innerHTML = ""; 
+
+    let matchFound = false;
+
+    personData.forEach(person => {
+        if (person.address.toLowerCase() == searchText.toLowerCase() ) {
+            matchFound = true;
+
+            let personDiv = document.createElement('div');
+            personDiv.classList.add('person-entry');
+            personDiv.innerHTML = `
+                <p><strong>Name:</strong> ${person.firstName} ${person.lastName}</p>
+                <p><strong>Phone:</strong> ${person.phone}</p>
+                <p><strong>Address:</strong> ${person.address}</p>
+                <p><strong>Reason:</strong> ${person.reason}</p>
+                <hr>
+            `;
+            container.appendChild(personDiv);
         }
+    });
 
-        function submitForm() {
-            let address = document.getElementById("address").value.trim();
-            if (address) {
-                storedAddresses.push(address.toLowerCase());
-                alert("Information submitted!");
-            }
-        }
+    if (matchFound) {
+        alertBox.style.display = "block"; // Show alert
+    }
+}
 
-        function checkAddress() {
-            let searchValue = document.getElementById("search").value.trim().toLowerCase();
-            let alertBox = document.getElementById("alert");
 
-            if (storedAddresses.includes(searchValue)) {
-                alertBox.style.display = "block";
-            } else {
-                alertBox.style.display = "none";
-            }
-        }
     </script>
 
 </body>
